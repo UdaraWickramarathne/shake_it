@@ -9,4 +9,9 @@ class BluetoothDataProvider extends ChangeNotifier {
     _receivedData = newData;
     notifyListeners();
   }
+  
+  void clearReceivedData() {
+    _receivedData = '';
+    notifyListeners();
+  }
 }

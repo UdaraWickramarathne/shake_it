@@ -1,14 +1,12 @@
-import 'dart:async';
-import 'dart:typed_data';
-
+import 'dart:developer' as dev;
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 import 'package:shake_it/model/cocktail.dart';
 import 'package:shake_it/pages/preparing_page.dart';
 import 'package:shake_it/service/bluetooth_configs/bluetooth_data_provider.dart';
 import 'package:shake_it/service/bluetooth_configs/bluetooth_manager.dart';
-import 'package:flutter/material.dart';
-import 'package:lottie/lottie.dart';
-import 'dart:developer' as dev;
 
 class CoinPage extends StatefulWidget {
   final Cocktail cocktail;
@@ -20,7 +18,18 @@ class CoinPage extends StatefulWidget {
 
 class _CoinPageState extends State<CoinPage> {
   late BluetoothDataProvider bluetoothDataProvider;
-  int insertedCoins = 0; // Counter for inserted coin
+  int insertedCoins = 0;
+
+  @override
+  void initState() {
+    SystemChrome.setSystemUIOverlayStyle(
+      const SystemUiOverlayStyle(
+        systemNavigationBarColor: Colors.transparent, // Your desired color
+        systemNavigationBarIconBrightness: Brightness.dark,
+      ),
+    );
+    super.initState();
+  }
 
   @override
   void didChangeDependencies() {
@@ -32,25 +41,18 @@ class _CoinPageState extends State<CoinPage> {
 
   @override
   void dispose() {
-    // Remove the listener to avoid memory leaks
     bluetoothDataProvider.removeListener(_handleBluetoothData);
     insertedCoins = 0;
     super.dispose();
   }
 
   void _handleBluetoothData() {
-    // Assuming each receivedData represents one coin insertion
     final String data = bluetoothDataProvider.receivedData;
-    dev.log(data);
+    dev.log('Current Cocktail Coin Value: ${widget.cocktail.coinValue}');
 
-    if (data.isNotEmpty && data == "COIN") {
-      setState(() {
-        insertedCoins++;
-      });
+    if (data == "COIN") {
+      setState(() => insertedCoins++);
 
-      // dev.log('Inserted Coins: $insertedCoins');
-
-      // Check if required coins are inserted
       if (insertedCoins >= widget.cocktail.coinValue) {
         _sendCocktailCode();
       }
@@ -58,17 +60,15 @@ class _CoinPageState extends State<CoinPage> {
   }
 
   void _sendCocktailCode() {
-    insertedCoins = 0;
     BluetoothManager.instance.sendMessage(widget.cocktail.code);
-    Navigator.push(
+    Navigator.pushReplacement(
+      // Key change here
       context,
       MaterialPageRoute(
-        builder: (context) {
-          return PreparingPage(
-            countdownSeconds: widget.cocktail.preparationTime,
-            cocktail: widget.cocktail,
-          );
-        },
+        builder: (context) => PreparingPage(
+          countdownSeconds: widget.cocktail.preparationTime,
+          cocktail: widget.cocktail,
+        ),
       ),
     );
   }
@@ -76,29 +76,62 @@ class _CoinPageState extends State<CoinPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          Center(
-            child: Text(
-              'INSERT ${widget.cocktail.coinValue} ${widget.cocktail.coinValue > 1 ? 'COINS' : 'COIN'}',
-              style: const TextStyle(
-                fontSize: 35,
-                fontWeight: FontWeight.bold,
-              ),
+      // Make the scaffold background transparent
+
+      body: Stack(children: [
+        Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                Colors.orange,
+                Colors.white,
+              ],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
             ),
           ),
-          const SizedBox(height: 50),
-          Lottie.asset(
-            'assets/coin_animation.json', // Path to the Lottie JSON file
-            width: 200,
-            height: 200,
-            fit: BoxFit.contain,
-          ),
-          const SizedBox(height: 20),
-          Text(insertedCoins.toString())
-        ],
-      ),
+        ),
+        Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Center(
+              child: Text(
+                'INSERT ${widget.cocktail.coinValue} ${widget.cocktail.coinValue > 1 ? 'COINS' : 'COIN'}',
+                style:
+                    const TextStyle(fontSize: 35, fontWeight: FontWeight.bold),
+              ),
+            ),
+            const SizedBox(height: 50),
+            Lottie.asset(
+              'assets/coin_animation.json',
+              width: 200,
+              height: 200,
+              fit: BoxFit.contain,
+            ),
+            const SizedBox(height: 20),
+            const Text('Inserted Coins Count', style: TextStyle(fontSize: 20)),
+            Container(
+              padding: const EdgeInsets.symmetric(
+                  vertical: 6, horizontal: 20), // Padding inside the container
+              decoration: BoxDecoration(
+                color: Colors.grey.shade300, // Background color
+                borderRadius: BorderRadius.circular(12.0), // Rounded corners
+                border: Border.all(
+                    color: Colors.grey.shade600,
+                    width: 2), // Border color and width
+              ),
+              child: Text(
+                '$insertedCoins',
+                style: const TextStyle(
+                  fontSize: 20, // Text size
+                  fontWeight: FontWeight.bold, // Text weight
+                  color: Colors.black, // Text color
+                ),
+              ),
+            )
+          ],
+        ),
+      ]),
     );
   }
 }

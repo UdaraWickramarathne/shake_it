@@ -20,4 +20,28 @@ class Cocktail {
     required this.coinValue,
     required this.preparationTime,
   });
+
+
+  //create setter for cocktail
+  Cocktail copyWith({
+    String? title,
+    String? description,
+    List<String>? ingredients,
+    MaterialColor? mainColor,
+    String? imagePath,
+    String? code,
+    int? coinValue,
+    int? preparationTime,
+  }) {
+    return Cocktail(
+      title: title ?? this.title,
+      description: description ?? this.description,
+      ingredients: ingredients ?? this.ingredients,
+      mainColor: mainColor ?? this.mainColor,
+      imagePath: imagePath ?? this.imagePath,
+      code: code ?? this.code,
+      coinValue: coinValue ?? this.coinValue,
+      preparationTime: preparationTime ?? this.preparationTime,
+    );
+  }
 }

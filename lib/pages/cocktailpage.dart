@@ -1,3 +1,4 @@
+import 'package:shake_it/pages/coin_page.dart';
 import 'package:shake_it/service/bluetooth_configs/bluetooth_manager.dart';
 import 'package:shake_it/service/custom_rect_tween.dart';
 import 'package:shake_it/model/cocktail.dart';
@@ -88,11 +89,11 @@ class _CocktailDetailPageState extends State<CocktailDetailPage> {
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
-                // Navigator.push(context, MaterialPageRoute(builder: (context) {
-                //   return CoinPage(
-                //     cocktail: widget.cocktail,
-                //   );
-                // }));
+                Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) {
+                  return CoinPage(
+                    cocktail: widget.cocktail,
+                  );
+                }));
 
                 BluetoothManager.instance.sendMessage("1");
               },

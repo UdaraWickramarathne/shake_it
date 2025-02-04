@@ -57,19 +57,7 @@ class _BluetoothDeviceHandlePageState extends State<BluetoothDeviceHandlePage> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-              builder: (context) => CoinPage(
-                    cocktail: Cocktail(
-                      title: 'Golden Glow',
-                      description:
-                          'A crisp and clean mix of vodka and gin, emphasizing their classic botanical and neutral flavors.',
-                      ingredients: ['Vodka', 'Gin'],
-                      mainColor: Colors.amber,
-                      imagePath: 'assets/golden_glow.png',
-                      code: 'GG005',
-                      coinValue: 3,
-                      preparationTime: 4,
-                    ),
-                  )),
+              builder: (context) => const HomePage()),
         );
       }
     } catch (e) {
