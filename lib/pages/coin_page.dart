@@ -1,8 +1,14 @@
+import 'dart:async';
+import 'dart:typed_data';
+
+import 'package:provider/provider.dart';
 import 'package:shake_it/model/cocktail.dart';
 import 'package:shake_it/pages/preparing_page.dart';
+import 'package:shake_it/service/bluetooth_configs/bluetooth_data_provider.dart';
 import 'package:shake_it/service/bluetooth_configs/bluetooth_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
+import 'dart:developer' as dev;
 
 class CoinPage extends StatefulWidget {
   final Cocktail cocktail;
@@ -13,39 +19,58 @@ class CoinPage extends StatefulWidget {
 }
 
 class _CoinPageState extends State<CoinPage> {
-  int _insertedCoins = 0;
+  late BluetoothDataProvider bluetoothDataProvider;
+  int insertedCoins = 0; // Counter for inserted coin
 
   @override
-  void initState() {
-    super.initState();
-    _listenForCoinInput();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    bluetoothDataProvider =
+        Provider.of<BluetoothDataProvider>(context, listen: false);
+    bluetoothDataProvider.addListener(_handleBluetoothData);
   }
 
-  void _listenForCoinInput() {
-    BluetoothManager.instance.connection?.input?.listen((data) {
-      // Assuming the Arduino sends the number of coins inserted as a string
-      String coinInput = String.fromCharCodes(data).trim();
-      int coins = int.tryParse(coinInput) ?? 0;
+  @override
+  void dispose() {
+    // Remove the listener to avoid memory leaks
+    bluetoothDataProvider.removeListener(_handleBluetoothData);
+    insertedCoins = 0;
+    super.dispose();
+  }
+
+  void _handleBluetoothData() {
+    // Assuming each receivedData represents one coin insertion
+    final String data = bluetoothDataProvider.receivedData;
+    dev.log(data);
+
+    if (data.isNotEmpty && data == "COIN") {
       setState(() {
-        _insertedCoins += coins;
+        insertedCoins++;
       });
 
-      if (_insertedCoins >= widget.cocktail.coinValue) {
+      // dev.log('Inserted Coins: $insertedCoins');
+
+      // Check if required coins are inserted
+      if (insertedCoins >= widget.cocktail.coinValue) {
         _sendCocktailCode();
       }
-    });
+    }
   }
 
   void _sendCocktailCode() {
+    insertedCoins = 0;
     BluetoothManager.instance.sendMessage(widget.cocktail.code);
-    Navigator.push(context, MaterialPageRoute(
-      builder: (context) {
-        return PreparingPage(
-          countdownSeconds: widget.cocktail.preparationTime,
-          cocktail: widget.cocktail,
-        );
-      },
-    ));
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) {
+          return PreparingPage(
+            countdownSeconds: widget.cocktail.preparationTime,
+            cocktail: widget.cocktail,
+          );
+        },
+      ),
+    );
   }
 
   @override
@@ -71,12 +96,7 @@ class _CoinPageState extends State<CoinPage> {
             fit: BoxFit.contain,
           ),
           const SizedBox(height: 20),
-          Text(
-            'Coins inserted: $_insertedCoins',
-            style: const TextStyle(
-              fontSize: 20,
-            ),
-          ),
+          Text(insertedCoins.toString())
         ],
       ),
     );

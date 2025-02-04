@@ -1,6 +1,7 @@
 import 'package:shake_it/model/cocktail.dart';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
+import 'package:shake_it/pages/coin_page.dart';
 
 class ResultPage extends StatelessWidget {
   final Cocktail cocktail;
@@ -32,7 +33,12 @@ class ResultPage extends StatelessWidget {
           const SizedBox(height: 50),
           ElevatedButton(
             onPressed: () {
-              Navigator.popUntil(context, (route) => route.isFirst);
+              // Navigator.popUntil(context, (route) => route.isFirst);
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => CoinPage(cocktail: cocktail),
+                  ));
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color.fromARGB(255, 49, 49, 49),
